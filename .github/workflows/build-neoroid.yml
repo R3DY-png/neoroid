@@ -40,7 +40,7 @@ jobs:
       - name: Apply Neoroid branding and welcome setup
         run: python3 .github/scripts/prepare_neoroid.py "$PROJECT_DIR"
 
-      - name: Build signed release APK
+      - name: Build release APK
         shell: bash
         run: |
           set -euo pipefail
@@ -52,6 +52,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: neoroid-0.1-release-apk
-          path: \${{ env.PROJECT_DIR }}/app/app/build/outputs/apk/default/release/*.apk
+          path: ${{ env.PROJECT_DIR }}/app/app/build/outputs/apk/default/release/*.apk
           if-no-files-found: error
           retention-days: 14
