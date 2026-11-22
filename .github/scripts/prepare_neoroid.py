@@ -200,3 +200,33 @@ replace_once(
 """
 )
 print("Neoroid source patch applied.")
+
+# Tighten Neoroid's merged app permissions and legacy application settings.
+main_manifest = root / "app/app/src/main/AndroidManifest.xml"
+main_data = main_manifest.read_text(encoding="utf-8")
+for permission in (
+    '    <uses-permission android:name="android.permission.GET_ACCOUNTS" />\n',
+    '    <uses-permission android:name="android.permission.WRITE_CALENDAR" />\n',
+    '    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />\n',
+    '    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />\n',
+    '    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n',
+    '    <uses-permission android:name="android.permission.INTERACT_ACROSS_PROFILES" />\n',
+    '    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />\n',
+):
+    main_data = main_data.replace(permission, "")
+main_data = main_data.replace('android:allowBackup="true"', 'android:allowBackup="false"')
+for legacy_attribute in (
+    '        android:fullBackupContent="true"\n',
+    '        android:crossProfile="true"\n',
+    '        android:requestLegacyExternalStorage="true"\n',
+    '        android:usesCleartextTraffic="true"\n',
+):
+    main_data = main_data.replace(legacy_attribute, "")
+main_manifest.write_text(main_data, encoding="utf-8")
+
+# The UI module duplicated permissions already declared by app/features.
+ui_manifest = root / "app/ui/src/main/AndroidManifest.xml"
+ui_data = ui_manifest.read_text(encoding="utf-8")
+ui_data = ui_data.replace('    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\\n', "")
+ui_data = ui_data.replace('    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />\\n', "")
+ui_manifest.write_text(ui_data, encoding="utf-8")
