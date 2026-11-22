@@ -57,6 +57,6 @@ jobs:
         with:
           name: neoroid-debug-apk
           path: |
-            ${{ env.PROJECT_DIR }}/**/build/outputs/apk/debug/*.apk
+            ${{ env.PROJECT_DIR }}/**/build/outputs/apk/**/*.apk
           if-no-files-found: error
           retention-days: 14
