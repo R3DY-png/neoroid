@@ -1,13 +1,14 @@
-name: Build Neoroid APK
+name: Build Neoroid 0.1 APK
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - neoroid-build-workflow
+      - neoroid-update-01
     paths:
       - "Neoroid-GitHub-Ready.zip"
       - ".github/workflows/build-neoroid.yml"
+      - ".github/scripts/prepare_neoroid.py"
 
 permissions:
   contents: read
@@ -29,34 +30,28 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -f Neoroid-GitHub-Ready.zip || {
-            echo "Neoroid-GitHub-Ready.zip was not found in the repository root."
-            exit 1
-          }
+          test -f Neoroid-GitHub-Ready.zip
           mkdir -p source
           unzip -q Neoroid-GitHub-Ready.zip -d source
           WRAPPER="$(find source -type f -name gradlew -print -quit)"
-          if [ -z "$WRAPPER" ]; then
-            echo "No Gradle wrapper (gradlew) was found in the ZIP."
-            echo "Archive contents:"
-            find source -maxdepth 3 -type f | head -100
-            exit 1
-          fi
+          test -n "$WRAPPER"
           echo "PROJECT_DIR=$(dirname "$WRAPPER")" >> "$GITHUB_ENV"
 
-      - name: Build debug APK
+      - name: Apply Neoroid branding and welcome setup
+        run: python3 .github/scripts/prepare_neoroid.py "$PROJECT_DIR"
+
+      - name: Build signed release APK
         shell: bash
         run: |
           set -euo pipefail
           cd "$PROJECT_DIR"
           chmod +x ./gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDefaultRelease --stacktrace
 
-      - name: Upload APK
+      - name: Upload Neoroid APK
         uses: actions/upload-artifact@v4
         with:
-          name: neoroid-debug-apk
-          path: |
-            ${{ env.PROJECT_DIR }}/**/build/outputs/apk/**/*.apk
+          name: neoroid-0.1-release-apk
+          path: \${{ env.PROJECT_DIR }}/app/app/build/outputs/apk/default/release/*.apk
           if-no-files-found: error
           retention-days: 14
