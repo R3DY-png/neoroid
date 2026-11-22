@@ -1,4 +1,5 @@
 name: Build Neoroid 0.1 APK
+run-name: Neoroid 0.1 test build
 
 on:
   workflow_dispatch:
