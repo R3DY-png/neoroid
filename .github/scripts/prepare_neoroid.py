@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import sys
 
 root = Path(sys.argv[1]).resolve()
@@ -230,3 +231,34 @@ ui_data = ui_manifest.read_text(encoding="utf-8")
 ui_data = ui_data.replace('    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\\n', "")
 ui_data = ui_data.replace('    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />\\n', "")
 ui_manifest.write_text(ui_data, encoding="utf-8")
+
+
+# Neoroid mascot launcher icon (vector recreation of the supplied blue mascot).
+icon = root / "app/app/src/main/res/drawable/neoroid_launcher.xml"
+icon.parent.mkdir(parents=True, exist_ok=True)
+icon.write_text("""<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <path android:fillColor="#050A18" android:pathData="M0,0h512v512h-512z" />
+    <path android:fillColor="#0900D8" android:pathData="M104,151a34,34 0,1 0,68 0a34,34 0,1 0,-68 0" />
+    <path android:fillColor="#0900D8" android:pathData="M340,151a34,34 0,1 0,68 0a34,34 0,1 0,-68 0" />
+    <path android:fillColor="#087BFF" android:pathData="M20,390C29,260 120,169 256,169C392,169 483,260 492,390C494,414 477,430 452,430H60C35,430 18,414 20,390Z" />
+    <path android:fillColor="#050505" android:pathData="M116,294a29,29 0,1 0,58 0a29,29 0,1 0,-58 0" />
+    <path android:fillColor="#050505" android:pathData="M338,294a29,29 0,1 0,58 0a29,29 0,1 0,-58 0" />
+    <path android:fillColor="#FFFFFF" android:pathData="M126,276a8,8 0,1 0,16 0a8,8 0,1 0,-16 0" />
+    <path android:fillColor="#FFFFFF" android:pathData="M348,276a8,8 0,1 0,16 0a8,8 0,1 0,-16 0" />
+</vector>
+""", encoding="utf-8")
+
+# Point the installed app and round launcher icon at the new Neoroid mascot.
+manifest_data = main_manifest.read_text(encoding="utf-8")
+manifest_data, icon_count = re.subn(r'android:icon="[^"]+"', 'android:icon="@drawable/neoroid_launcher"', manifest_data, count=1)
+if icon_count != 1:
+    raise SystemExit("Could not locate the app icon attribute in the main manifest")
+if 'android:roundIcon=' in manifest_data:
+    manifest_data = re.sub(r'android:roundIcon="[^"]+"', 'android:roundIcon="@drawable/neoroid_launcher"', manifest_data, count=1)
+main_manifest.write_text(manifest_data, encoding="utf-8")
+print("Neoroid mascot icon applied.")
